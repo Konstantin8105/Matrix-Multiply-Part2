@@ -1,9 +1,6 @@
 package main_test
 
-import (
-	"fmt"
-	"testing"
-)
+import "testing"
 
 var ay float64 = 45.4343
 var qy float64 = 45.4343
@@ -30,14 +27,15 @@ func BenchmarkSumProduct(b *testing.B) {
 	}
 }
 
+/*
 type Sign int
 
 func (sign Sign) String() (s string) {
 	switch sign {
 	case plus:
-		s += fmt.Sprintf("+")
+		s += fmt.Sprintf(" + ")
 	case minus:
-		s += fmt.Sprintf("-")
+		s += fmt.Sprintf(" - ")
 	case multiply:
 		s += fmt.Sprintf("*")
 	case none:
@@ -54,7 +52,10 @@ const (
 )
 
 type node struct {
+	// value parameters
 	value string
+	//valueSign Sign
+	// node parameters
 	left  *node
 	right *node
 	sign  Sign
@@ -66,44 +67,24 @@ func newNode(v string) (n *node) {
 	}
 	n = new(node)
 	n.sign = none
+	//n.valueSign = plus
 	n.value = v
 	return
 }
 
-func op(n1, n2 *node, sign Sign) *node {
+func op(n1, n2 *node, sign Sign) (result *node) {
+	result = new(node)
 	switch sign {
 	case plus:
-		return Plus(n1, n2)
+		(*result).sign = plus
 	case minus:
-		return Minus(n1, n2)
+		(*result).sign = minus
 	case multiply:
-		return Multiply(n1, n2)
+		(*result).sign = multiply
 	}
-	panic("Haven`t function")
-}
-
-func Multiply(n1, n2 *node) *node {
-	sum := new(node)
-	(*sum).sign = multiply
-	(*sum).left = n1
-	(*sum).right = n2
-	return sum
-}
-
-func Minus(n1, n2 *node) *node {
-	sum := new(node)
-	(*sum).sign = minus
-	(*sum).left = n1
-	(*sum).right = n2
-	return sum
-}
-
-func Plus(n1, n2 *node) *node {
-	sum := new(node)
-	(*sum).sign = plus
-	(*sum).left = n1
-	(*sum).right = n2
-	return sum
+	(*result).left = n1
+	(*result).right = n2
+	return
 }
 
 func (n *node) amountMultiplications() (amount int) {
@@ -117,9 +98,84 @@ func (n *node) amountMultiplications() (amount int) {
 	return
 }
 
+func (n *node) compressValues() (result *node) {
+	if n == nil {
+		return nil
+	}
+	switch n.sign {
+	// input: value
+	case none:
+		panic("Error")
+	case plus:
+		//fmt.Printf(">+ %v\n", n)
+		result = op(n.left.compressValues(), n.right.compressValues(), plus)
+	case minus:
+		//fmt.Printf(">- %v\n", n)
+		result = op(n.left.compressValues(), n.right.compressValues(), minus)
+	case multiply:
+		//fmt.Printf(">* %v\n", n)
+		var name string
+		if ([]byte(n.left.value))[0] < ([]byte(n.right.value))[0] {
+			name = fmt.Sprintf("%v%v", n.left.value, n.right.value)
+		} else {
+			name = fmt.Sprintf("%v%v", n.right.value, n.left.value)
+		}
+		result = newNode(name)
+	}
+	return
+}
+
+func (n *node) compressEquation() (result *node) {
+	defer func() {
+		// check again
+	}()
+	if n == nil {
+		return nil
+	}
+	// 2 values
+	if len(n.left.value) != 0 && len(n.right.value) != 0 {
+		var name string
+		if ([]byte(n.left.value))[0] < ([]byte(n.right.value))[0] {
+			name = fmt.Sprintf("%v%v%v", n.left.value, n.sign, n.right.value)
+		} else {
+			name = fmt.Sprintf("%v%v%v", n.right.value, n.sign, n.left.value)
+		}
+		result = newNode(name)
+	}
+	switch n.sign {
+	// input: value
+	case none:
+		panic("Error")
+	case plus:
+		a := n.left.compressEquation()
+		b := n.right.compressEquation()
+		result = op(a, b, plus)
+	//panic("")
+	case minus:
+		if n.right.sign == minus {
+			n.sign = plus
+			if n.right.left != nil && n.right.right != nil {
+				n.right.left, n.right.right = n.right.right, n.right.left
+			}
+		}
+		a := n.left.compressEquation()
+		b := n.right.compressEquation()
+		result = op(a, b, plus)
+		//panic("")
+	case multiply:
+		a := n.left.compressEquation()
+		b := n.right.compressEquation()
+		result = op(a, b, multiply)
+		//panic("")
+	}
+	return
+}
+
 func (n *node) simplification() (result *node) {
 	defer func() {
-		fmt.Printf("result = %v\n", result)
+		if result.haveInternal() {
+			result = result.simplification()
+		}
 	}()
 
 	// input: empty node
@@ -139,7 +195,8 @@ func (n *node) simplification() (result *node) {
 	if n.sign == plus || n.sign == minus {
 		a := n.left.simplification()
 		b := n.right.simplification()
-		return op(a, b, n.sign)
+		v := op(a, b, n.sign)
+		return v
 	}
 	// Now, root node is multiplication
 
@@ -148,7 +205,7 @@ func (n *node) simplification() (result *node) {
 	//    / \
 	// left right
 	if len(n.left.value) != 0 && len(n.right.value) != 0 {
-		return n
+		return op(n.left, n.right, multiply)
 	}
 	// Now, some of or all (left , right) is not value
 
@@ -160,12 +217,7 @@ func (n *node) simplification() (result *node) {
 			//    / \
 			//   *   *
 			// left right
-			l := n.left.simplification()
-			r := n.right.simplification()
-			if l.sign == multiply && r.sign == multiply {
-				return op(l, r, multiply)
-			}
-			return op(l, r, multiply).simplification()
+			return op(n.left, n.right, multiply)
 		}
 		if n.left.sign != multiply && n.right.sign != multiply {
 			//      *
@@ -189,126 +241,115 @@ func (n *node) simplification() (result *node) {
 			b.simplification()
 			c.simplification()
 			d.simplification()
-			ac := op(a,c,multiply)
-			ad := op(a,d,multiply)
-			bc := op(b,c,multiply)
-			bd := op(b,d,multiply)
-			return op(
-				,
-				,
-
-			).simplification()
+			ac := op(a, c, multiply)
+			ad := op(a, d, multiply)
+			bc := op(b, c, multiply)
+			bd := op(b, d, multiply)
+			V1 := op(ac, ad, n.right.sign)
+			V2 := op(V1, bc, n.left.sign)
+			var V3 *node
+			if n.left.sign == n.right.sign {
+				// - * - = +
+				// + * + = +
+				V3 = op(V2, bd, plus)
+			} else {
+				// - * + = -
+				// + * - = -
+				V3 = op(V2, bd, minus)
+			}
+			return V3
 		}
 	}
-	/*
-		// input: left is value
-		if n.left.value != "" && n.right.sign != none {
-			//        *
-			//      /   \
-			//     V1    +
-			//          / \
-			//         c   d
-			// V1 *( c -d )
-			// V1 * c  -  V1 *d
-			V1 := n.left
-			c := n.right.left
-			d := n.right.right
-			c.simplification()
-			d.simplification()
-			result := op(op(V1, c, multiply), op(V1, d, multiply), n.right.sign)
+	// Now, left or right is value
 
-			fmt.Println("D1    --> ", result)
-			fmt.Println("D1.V1 --> ", c)
-			fmt.Println("D1.V2 --> ", d)
-			return result.simplification()
+	// left  = value
+	// right = +,-,*
+	if len(n.left.value) != 0 && len(n.right.value) == 0 {
+		if n.right.sign == multiply {
+			//       *
+			//      / \
+			//     v   *
+			//        / \
+			//       a   b
+			//    v *a * b
+			//   a * b * v
+			//   =====
+			//     V1
+			//     =======
+			//        V2
+			a := n.right.left
+			b := n.right.right
+			v := n.left
+			a.simplification()
+			b.simplification()
+			V1 := op(a, b, multiply)
+			V2 := op(V1, v, multiply)
+			return V2
 		}
+		//       *
+		//     /   \
+		//    v    +,-
+		//        /   \
+		//       a     b
+		//  v*a +/- v,b
+		//  V1       V2
+		v := n.left
+		a := n.right.left
+		b := n.right.right
+		V1 := op(v, a, multiply)
+		V2 := op(v, b, multiply)
+		a.simplification()
+		b.simplification()
+		return op(V1, V2, n.right.sign)
+	}
 
+	// left  = +,-,*
+	// right = value
+	if len(n.left.value) == 0 && len(n.right.value) != 0 {
+		if n.left.sign == multiply {
+			//       *
+			//      / \
+			//      *  v
+			//    /  \
+			//   a    b
+			//   b * v * a
+			//   =====
+			//     V1
+			//     =======
+			//        V2
+			v := n.right
+			a := n.left.left
+			b := n.left.right
+			a.simplification()
+			b.simplification()
+			V1 := op(b, v, multiply)
+			V2 := op(V1, a, multiply)
+			return V2
+		}
+		//       *
+		//      / \
+		//    +,-  v
+		//    /  \
+		//   a    b
+		//  v*a +/- v,b
+		//  V1       V2
+		v := n.right
 		a := n.left.left
 		b := n.left.right
-		c := n.right.left
-		d := n.right.right
-		fmt.Println("a =", a)
-		fmt.Println("b =", b)
-		fmt.Println("c =", c)
-		fmt.Println("d =", d)
+		V1 := op(v, a, multiply)
+		V2 := op(v, b, multiply)
+		a.simplification()
+		b.simplification()
+		return op(V1, V2, n.left.sign)
+	}
+	fmt.Printf("n     := %#v\n", n)
+	fmt.Printf("left  := %#v\n", n.left)
+	fmt.Printf("right := %#v\n", n.right)
 
-		if a == nil && b == nil && c == nil && d == nil {
-			return n
-		}
-		if n.left == nil {
-			fmt.Println("***********************")
-			return n
-		}
-		if n.right == nil {
-			fmt.Println("***********************")
-			return n
-		}
-		if a == nil {
-			fmt.Println("***********************")
-			fmt.Println("left = ", n.left)
-			fmt.Println("ri   = ", n.right)
-			fmt.Println("a =", a)
-			fmt.Println("b =", b)
-			fmt.Println("c =", c)
-			fmt.Println("d =", d)
-			fmt.Println("***********************")
-			return n
-		}
-		if (n.left.sign == plus || n.left.sign == minus) && (n.right.sign == plus || n.right.sign == minus) {
-			switch {
-			case n.left.sign == plus && n.right.sign == plus:
-				// (a + b) * (c + d)
-				// (a*c + a*d) + (b*c + b*d)
-				//      V1     +      V2
-				V1 := op(op(a, c, multiply), op(a, d, multiply), plus)
-				V2 := op(op(b, c, multiply), op(b, d, multiply), plus)
-				result := op(V1, V2, plus)
-				//V1.simplification()
-				//V2.simplification()
-				fmt.Println("A1    --> ", result)
-				fmt.Println("A1.V1 --> ", V1)
-				fmt.Println("A1.V2 --> ", V2)
-				return result.simplification()
-			case n.left.sign == minus && n.right.sign == plus:
-				panic("")
-			case n.left.sign == plus && n.right.sign == minus:
-				panic("")
-			case n.left.sign == minus && n.right.sign == minus:
-				panic("")
-			}
-		}
-		if n.left.sign == plus || n.left.sign == minus {
-			//      *
-			//    /   \
-			//   -     *
-			//  / \    c
-			//  a  b
-			// (a - b) * c
-			// a*c - b*c
-			// V1  - V2
-			c = n.right
-			V1 := op(a, c, multiply)
-			V2 := op(b, c, multiply)
-			c.simplification()
-			return op(V1, V2, n.left.sign)
-		}
-		if n.right.sign == plus || n.right.sign == minus {
-			//          *
-			//        /   \
-			//       *     +
-			//      a     /  \
-			//           c    d
-			// a * (c-d)
-			// a*c - a*d
-			// V1  - V2
-			a = n.left
-			V1 := op(a, c, multiply)
-			V2 := op(a, d, multiply)
-			a.simplification()
-			V1.simplification()
-			V2.simplification()
-			return op(V1, V2, n.right.sign).simplification()
-		}*/
+	fmt.Printf("n     := %v\n", n)
+	fmt.Printf("left  := %v\n", n.left)
+	fmt.Printf("sign  := %v\n", n.sign)
+	fmt.Printf("right := %v\n", n.right)
 	panic(fmt.Sprintf("ATTENTION : %v", n))
 }
 
@@ -329,19 +370,36 @@ func (n *node) String() (s string) {
 	if n.sign == none {
 		s += fmt.Sprintf("%v", n.value)
 	} else {
-		if n.sign == multiply && (n.left.sign == plus || n.left.sign == minus) {
-			s += fmt.Sprintf("(%v)", n.left)
-		} else {
-			s += fmt.Sprintf("%v", n.left)
-		}
-		s += fmt.Sprintf(" %v ", n.sign)
-		if n.sign == multiply && (n.right.sign == plus || n.right.sign == minus) {
-			s += fmt.Sprintf("(%v)", n.right)
-		} else {
-			s += fmt.Sprintf("%v", n.right)
-		}
+		s += fmt.Sprintf("(%v%v%v)", n.left, n.sign, n.right)
 	}
 	return s
+}
+
+func TestFormula1(t *testing.T) {
+	a := newNode("a")
+	b := newNode("b")
+	c := newNode("c")
+
+	p1 := op(a, op(b, c, minus), multiply)
+	p1 = p1.simplification()
+	if fmt.Sprintf("%v", p1) != "((a*b) - (a*c))" {
+		t.Errorf("Not correct")
+	}
+}
+
+func TestFormula2(t *testing.T) {
+	a := newNode("a")
+	b := newNode("b")
+	c := newNode("c")
+	d := newNode("d")
+	e := newNode("e")
+
+	p1 := op(op(b, c, minus), op(a, op(d, e, minus), plus), multiply)
+	p1 = p1.simplification()
+	if fmt.Sprintf("%v", p1) != "((((b*a) + ((b*d) - (b*e))) - (c*a)) - ((c*d) - (c*e)))" {
+		t.Errorf("Not correct")
+	}
+
 }
 
 func TestNodes(t *testing.T) {
@@ -350,43 +408,19 @@ func TestNodes(t *testing.T) {
 	c := newNode("c")
 	d := newNode("d")
 	e := newNode("e")
-	f := newNode("f")
-	g := newNode("g")
-	h := newNode("h")
 
-	s := op(op(op(a, b, plus), c, multiply), op(op(d, e, plus), op(f, op(g, h, plus), minus), multiply), plus)
+	w1 := op(op(b, c, minus), op(a, op(d, e, minus), plus), multiply)
 
-	fmt.Println("s      = ", s)
-	fmt.Println("simple = ", s.simplification())
-
-	/*
-		c11 := (a.multiply(&e)).plus(b.multiply(&h))
-		c12 := (a.multiply(&f)).plus(b.multiply(&g))
-		c21 := (c.multiply(&e)).plus(d.multiply(&h))
-		c22 := (c.multiply(&f)).plus(d.multiply(&g))
-		fmt.Println("c11 = ", c11)
-		fmt.Println("c12 = ", c12)
-		fmt.Println("c21 = ", c21)
-		fmt.Println("c22 = ", c22)
-
-		s := (a.plus(&b).plus(&c)).multiply(d.plus(&f).plus(&g))
-		fmt.Println("s = ", s)
-		fmt.Println("ss =", s.haveInternal())
-		fmt.Println("simply1 = ", s.simplification(0))
-		//fmt.Println("simply2 = ", s.simplification(0))
-		fmt.Printf("\n\n\n\n ---\n")
-
-		z := c21.plus(c22)
-		fmt.Println("z = ", z)
-		fmt.Println("zz= ", z.haveInternal())
-
-		y := (a.multiply(&b).plus(&c)).multiply(&d)
-		fmt.Println("y = ", y)
-		fmt.Println("yy= ", y.haveInternal())
-
-		p := a.multiply(&b).multiply(c.plus(&d)).plus(e.multiply(&h))
-		fmt.Println("p = ", p)
-		fmt.Println("pp =", p.haveInternal())
-		fmt.Println("p*= ", p.amountMultiplications())
-	*/
+	fmt.Printf("I.    = %v\n", w1)
+	w2 := w1.simplification()
+	fmt.Printf("II.   = %v\n", w1)
+	fmt.Printf("III.  = %v\n", w2)
+	fmt.Printf("IV.   >>>%v\n", w2.haveInternal())
+	w3 := w2.compressValues()
+	fmt.Printf("V.    = %v\n", w2)
+	fmt.Printf("VI.   = %v\n", w3)
+	w4 := w3.compressEquation()
+	fmt.Printf("VII.  = %v\n", w3)
+	fmt.Printf("VIII. = %v\n", w4)
 }
+*/
