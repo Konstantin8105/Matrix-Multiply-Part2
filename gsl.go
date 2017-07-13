@@ -9,42 +9,42 @@ package main
 #cgo LDFLAGS: -lm -lgsl -lgslcblas
 */
 import "C"
-import (
-	"fmt"
-)
 
+/*
 func main() {
 	{
-		/*
-		  double x = 5.0;
-		  double expected = -0.17759677131433830434739701;
+*/
+/*
+  double x = 5.0;
+  double expected = -0.17759677131433830434739701;
 
-		  double y = gsl_sf_bessel_J0 (x);
+  double y = gsl_sf_bessel_J0 (x);
 
-		  printf ("J0(5.0) = %.18f\n", y);
-		  printf ("exact   = %.18f\n", expected);
-		*/
-		x := 5.0
-		expected := -0.17759677131433830434739701
-		y := C.gsl_sf_bessel_J0(C.double(x))
-		fmt.Println("y        = ", y)
-		fmt.Println("expected = ", expected)
-	}
-	{
-		/*
-		  double x = 5.0;
-		  gsl_sf_result result;
+  printf ("J0(5.0) = %.18f\n", y);
+  printf ("exact   = %.18f\n", expected);
+*/
+/*		x := 5.0
+	expected := -0.17759677131433830434739701
+	y := C.gsl_sf_bessel_J0(C.double(x))
+	fmt.Println("y        = ", y)
+	fmt.Println("expected = ", expected)
+}
+{*/
+/*
+  double x = 5.0;
+  gsl_sf_result result;
 
-		  double expected = -0.17759677131433830434739701;
+  double expected = -0.17759677131433830434739701;
 
-		  int status = gsl_sf_bessel_J0_e (x, &result);
+  int status = gsl_sf_bessel_J0_e (x, &result);
 
-		  printf ("status  = %s\n", gsl_strerror(status));
-		  printf ("J0(5.0) = %.18f\n"
-		          "      +/- % .18f\n",
-		          result.val, result.err);
-		  printf ("exact   = %.18f\n", expected);
-		*/
+  printf ("status  = %s\n", gsl_strerror(status));
+  printf ("J0(5.0) = %.18f\n"
+          "      +/- % .18f\n",
+          result.val, result.err);
+  printf ("exact   = %.18f\n", expected);
+*/
+/*
 		x := 5.0
 		var result C.gsl_sf_result
 		expected := -0.17759677131433830434739701
@@ -77,7 +77,7 @@ func main() {
 
 		  printf ("[ %g, %g\n", c[0], c[1]);
 		  printf ("  %g, %g ]\n", c[2], c[3]);
-		*/
+*/ /*
 
 		// https://www.gnu.org/software/gsl/doc/html/blas.html#examples
 		a := []float64{0.11, 0.12, 0.13,
@@ -106,7 +106,7 @@ func main() {
 		fmt.Println("[", C.gsl_matrix_get(mC, 0, 0), C.gsl_matrix_get(mC, 0, 1), "]")
 		fmt.Println("[", C.gsl_matrix_get(mC, 1, 0), C.gsl_matrix_get(mC, 1, 1), "]")
 	}
-}
+}*/
 
 // TODO : remove dublicate of memory
 // link   : https://askubuntu.com/questions/623339/altough-i-installed-gsl-library-g-cannot-compile-my-code
@@ -130,4 +130,8 @@ func mmGSL(A, B, C *[][]float64) {
 	mC := C.gsl_matrix_alloc(n, n)
 
 	C.gsl_blas_dgemm(C.CblasNoTrans, C.CblasNoTrans, C.double(1.0), mA, mB, C.double(0.0), mC)
+
+	C.gsl_matrix_free(mA)
+	C.gsl_matrix_free(mB)
+	C.gsl_matrix_free(mC)
 }
