@@ -78,26 +78,32 @@ func main() {
 		  printf ("[ %g, %g\n", c[0], c[1]);
 		  printf ("  %g, %g ]\n", c[2], c[3]);
 		*/
+
+		// https://www.gnu.org/software/gsl/doc/html/blas.html#examples
 		a := []float64{0.11, 0.12, 0.13,
 			0.21, 0.22, 0.23}
+		mA := C.gsl_matrix_alloc(2, 3)
+		for i := 0; i < 2; i++ {
+			for j := 0; j < 3; j++ {
+				C.gsl_matrix_set(mA, C.size_t(i), C.size_t(j), C.double(a[i*3+j]))
+			}
+		}
 
 		b := []float64{1011, 1012,
 			1021, 1022,
 			1031, 1032}
+		mB := C.gsl_matrix_alloc(3, 2)
+		for i := 0; i < 3; i++ {
+			for j := 0; j < 2; j++ {
+				C.gsl_matrix_set(mB, C.size_t(i), C.size_t(j), C.double(b[i*2+j]))
+			}
+		}
 
-		c := []float64{0.00, 0.00,
-			0.00, 0.00}
+		mC := C.gsl_matrix_alloc(2, 2)
 
-		var Am C.gsl_matrix_view = C.gsl_matrix_view_array((*C.double)(&a[0]), 2, 3)
-		var Bm C.gsl_matrix_view = C.gsl_matrix_view_array((*C.double)(&b[0]), 3, 2)
-		var Cm C.gsl_matrix_view = C.gsl_matrix_view_array((*C.double)(&c[0]), 2, 2)
+		C.gsl_blas_dgemm(C.CblasNoTrans, C.CblasNoTrans, C.double(1.0), mA, mB, C.double(0.0), mC)
 
-		// before build execute:
-		// export GODEBUG=cgocheck=0
-		C.gsl_blas_dgemm(C.CblasNoTrans, C.CblasNoTrans,
-			1.0, &Am.matrix, &Bm.matrix,
-			0.0, &Cm.matrix)
-		fmt.Println("[", c[0], ",", c[1], "]")
-		fmt.Println("[", c[2], ",", c[3], "]")
+		fmt.Println("[", C.gsl_matrix_get(mC, 0, 0), C.gsl_matrix_get(mC, 0, 1), "]")
+		fmt.Println("[", C.gsl_matrix_get(mC, 1, 0), C.gsl_matrix_get(mC, 1, 1), "]")
 	}
 }
