@@ -1,4 +1,4 @@
-package main_test
+package main
 
 import (
 	"testing"
@@ -14,7 +14,7 @@ func BenchmarkGSL(b *testing.B) {
 	// but it is not important
 	for i := 0; i < b.N; i++ {
 		// Start of algorithm
-		mmSimple(&A, &B, &C)
+		mmGSL(&A, &B, &C)
 		// Finish of algorithm
 	}
 }

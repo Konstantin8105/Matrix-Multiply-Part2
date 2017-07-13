@@ -109,6 +109,8 @@ func main() {
 }
 
 // TODO : remove dublicate of memory
+// link   : https://askubuntu.com/questions/623339/altough-i-installed-gsl-library-g-cannot-compile-my-code
+// install: sudo apt-get install libgsl0-dev
 func mmGSL(A, B, C *[][]float64) {
 	n := C.size_t(len(*A))
 	mA := C.gsl_matrix_alloc(n, n)
@@ -125,7 +127,7 @@ func mmGSL(A, B, C *[][]float64) {
 		}
 	}
 
-	mC := C.gsl_matrix_alloc(2, 2)
+	mC := C.gsl_matrix_alloc(n, n)
 
 	C.gsl_blas_dgemm(C.CblasNoTrans, C.CblasNoTrans, C.double(1.0), mA, mB, C.double(0.0), mC)
 }

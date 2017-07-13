@@ -1,4 +1,4 @@
-package main_test
+package main
 
 // getenerateMatrix - generate the matrix for test
 func generateMatrix() (A, B, C [][]float64) {
@@ -20,6 +20,26 @@ func generateMatrix() (A, B, C [][]float64) {
 		for j := 0; j < n; j++ {
 			A[i][j] = 4.0 * float64(i+9+j)    //* rand.Float64() * float64(j-i+n*2)
 			B[i][j] = 4.0 * float64(11-i-2*j) //* rand.Float64() * float64(j-i+n*2)
+		}
+	}
+	return
+}
+
+// getenerateMatrix - generate the matrix for test
+func generateMatrixSingle() (A, B, C []float64) {
+	// size of matrix
+	n := 1024
+
+	// initialization
+	A = make([]float64, n*n)
+	B = make([]float64, n*n)
+	C = make([]float64, n*n)
+
+	// defaul values can be any
+	for i := 0; i < n; i++ {
+		for j := 0; j < n; j++ {
+			A[i+j*n] = 4.0 * float64(i+9+j)    //* rand.Float64() * float64(j-i+n*2)
+			B[i+j*n] = 4.0 * float64(11-i-2*j) //* rand.Float64() * float64(j-i+n*2)
 		}
 	}
 	return
