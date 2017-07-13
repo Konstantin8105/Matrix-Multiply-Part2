@@ -11,7 +11,6 @@ package main
 import "C"
 import (
 	"fmt"
-	"unsafe"
 )
 
 func main() {
@@ -89,9 +88,9 @@ func main() {
 		c := []float64{0.00, 0.00,
 			0.00, 0.00}
 
-		var Am C.gsl_matrix_view = C.gsl_matrix_view_array((*C.double)(unsafe.Pointer(&a[0])), 2, 3)
-		var Bm C.gsl_matrix_view = C.gsl_matrix_view_array((*C.double)(unsafe.Pointer(&b[0])), 3, 2)
-		var Cm C.gsl_matrix_view = C.gsl_matrix_view_array((*C.double)(unsafe.Pointer(&c[0])), 2, 2)
+		var Am C.gsl_matrix_view = C.gsl_matrix_view_array((*C.double)(&a[0]), 2, 3)
+		var Bm C.gsl_matrix_view = C.gsl_matrix_view_array((*C.double)(&b[0]), 3, 2)
+		var Cm C.gsl_matrix_view = C.gsl_matrix_view_array((*C.double)(&c[0]), 2, 2)
 
 		// before build execute:
 		// export GODEBUG=cgocheck=0
