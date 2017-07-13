@@ -1,7 +1,6 @@
 package main_test
 
-import "testing"
-
+/*
 var ay float64 = 45.4343
 var qy float64 = 45.4343
 var ry float64 = 45.4343

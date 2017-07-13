@@ -107,3 +107,24 @@ func main() {
 		fmt.Println("[", C.gsl_matrix_get(mC, 1, 0), C.gsl_matrix_get(mC, 1, 1), "]")
 	}
 }
+
+func mmGSL(A, B, C *[][]float64) {
+	n := C.size_t(len(*A))
+	mA := C.gsl_matrix_alloc(n, n)
+	for i := 0; C.size_t(i) < C.size_t(n); i++ {
+		for j := 0; C.size_t(j) < C.size_t(n); j++ {
+			C.gsl_matrix_set(mA, C.size_t(i), C.size_t(j), C.double((*A)[i][j]))
+		}
+	}
+
+	mB := C.gsl_matrix_alloc(n, n)
+	for i := 0; C.size_t(i) < C.size_t(n); i++ {
+		for j := 0; C.size_t(j) < C.size_t(n); j++ {
+			C.gsl_matrix_set(mB, C.size_t(i), C.size_t(j), C.double((*B)[i][j]))
+		}
+	}
+
+	mC := C.gsl_matrix_alloc(2, 2)
+
+	C.gsl_blas_dgemm(C.CblasNoTrans, C.CblasNoTrans, C.double(1.0), mA, mB, C.double(0.0), mC)
+}
