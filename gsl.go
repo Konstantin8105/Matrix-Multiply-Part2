@@ -108,6 +108,7 @@ func main() {
 	}
 }
 
+// TODO : remove dublicate of memory
 func mmGSL(A, B, C *[][]float64) {
 	n := C.size_t(len(*A))
 	mA := C.gsl_matrix_alloc(n, n)
