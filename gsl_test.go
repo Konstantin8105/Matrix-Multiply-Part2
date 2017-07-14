@@ -1,8 +1,6 @@
 package main
 
-import (
-	"testing"
-)
+import "testing"
 
 func BenchmarkGSL(b *testing.B) {
 	// Stop the timer for avoid add time of generate matrix

@@ -1,13 +1,13 @@
 package main
 
-import "C"
-
 /*
 #include <stdio.h>
 #include <stdlib.h>
 #include "/home/konstantin/Programs/OpenBLAS2/include/cblas.h"
 #cgo LDFLAGS: -I /home/konstantin/Programs/OpenBLAS2/include/ -L/home/konstantin/Programs/OpenBLAS2/lib/ -lopenblas -lpthread -lgfortran
 */
+
+import "C"
 
 func mmOpenBLAS(A, B, D *[][]float64) {
 	n := C.blasint(len(*A))
