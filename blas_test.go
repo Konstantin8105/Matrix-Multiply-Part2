@@ -14,5 +14,4 @@ func BenchmarkBLAS(b *testing.B) {
 		mmBLAS(&A, &B, &C)
 		// Finish of algorithm
 	}
-}
-*/
+}*/

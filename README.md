@@ -3,19 +3,15 @@
 Let's continue.
 Now, we compare "GNU GSL + Cgo vs Parallel Buffer" algorithms.
 ```command
-BenchmarkBuffer-4   	     200	 379175018 ns/op
-BenchmarkGSL-4      	     200	 380431159 ns/op
-PASS
-ok  	github.com/Konstantin8105/Matrix-Multiply-Part2	227.210s
+BenchmarkBuffer-4   	     200	 397804236 ns/op
+BenchmarkGSL-4      	      50	1692919032 ns/op
 ```
 
 Now, we add to comparing "OpenBLAS" algorithm.
 ```command
 BenchmarkBLAS-4     	    1000	  89582252 ns/op
-BenchmarkBuffer-4   	     200	 386832087 ns/op
-BenchmarkGSL-4      	     200	 368384987 ns/op
-PASS
-ok  	github.com/Konstantin8105/Matrix-Multiply-Part2	329.495s
+BenchmarkBuffer-4   	     200	 397804236 ns/op
+BenchmarkGSL-4      	      50	1692919032 ns/op
 ```
 Note: [OpenBLAS](https://github.com/xianyi/OpenBLAS) little bit unstable.
 
