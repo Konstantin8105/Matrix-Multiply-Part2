@@ -1,6 +1,7 @@
 package main
 
-/*
+import "testing"
+
 func BenchmarkBLAS(b *testing.B) {
 	// Stop the timer for avoid add time of generate matrix
 	b.StopTimer()
@@ -11,7 +12,7 @@ func BenchmarkBLAS(b *testing.B) {
 	// but it is not important
 	for i := 0; i < b.N; i++ {
 		// Start of algorithm
-		mmBLAS(&A, &B, &C)
+		mmOpenBLAS(&A, &B, &C)
 		// Finish of algorithm
 	}
-}*/
+}

@@ -1,4 +1,4 @@
-package main_test
+package main
 
 /*
 var ay float64 = 45.4343
