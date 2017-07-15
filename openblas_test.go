@@ -5,7 +5,7 @@ import "testing"
 func BenchmarkBLAS(b *testing.B) {
 	// Stop the timer for avoid add time of generate matrix
 	b.StopTimer()
-	A, B, C := generateMatrix()
+	A, B, C := generateMatrixSingle()
 	// Now, we are ready for start timer our benchmark
 	b.StartTimer()
 	// We cannot control for amount of benchmark test,
